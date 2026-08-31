@@ -1,0 +1,308 @@
+#compdef claude
+#autoload
+
+function _claude() {
+  # Completion for the Claude CLI. Focuses on common flags and the key subcommands
+  # used by the desktop tool.
+
+  local curcontext="$curcontext" state line
+
+  local -a claude_permission_modes claude_output_formats claude_input_formats claude_setting_sources
+  claude_permission_modes=(acceptEdits bypassPermissions default dontAsk plan)
+  claude_output_formats=(text json stream-json)
+  claude_input_formats=(text stream-json)
+  claude_setting_sources=(user project local)
+
+  _arguments -C \
+    '(-d --debug)'{-d,--debug=}'[Enable debug mode (optional filter)]:filter pattern:' \
+    '--verbose[Override verbose mode setting from config]' \
+    '(-p --print)'{-p,--print}'[Print response and exit]' \
+    '--output-format=[Output format]:format:(text json stream-json)' \
+    '--json-schema=[JSON Schema for structured output validation]:schema file:_files' \
+    '--include-partial-messages[Include partial message chunks as they arrive]' \
+    '--input-format=[Input format]:format:(text stream-json)' \
+    '--mcp-debug[Enable MCP debug mode (deprecated)]' \
+    '--dangerously-skip-permissions[Bypass all permission checks]' \
+    '--allow-dangerously-skip-permissions[Allow bypassing permission checks without enabling it]' \
+    '--max-budget-usd=[Maximum budget in USD]:amount:' \
+    '--replay-user-messages[Echo stdin back on stdout in streaming modes]' \
+    '*--allowedTools=[Allow only the listed tools]:tool list:_default' \
+    '*--allowed-tools=[Allow only the listed tools]:tool list:_default' \
+    '*--tools=[Specify built-in tool set]:tool list:_default' \
+    '*--disallowedTools=[Disallow the listed tools]:tool list:_default' \
+    '*--disallowed-tools=[Disallow the listed tools]:tool list:_default' \
+    '*--mcp-config=[Load MCP servers from JSON files or strings]:config:_files' \
+    '--system-prompt=[Override system prompt]:prompt text:' \
+    '--append-system-prompt=[Append text to default system prompt]:prompt text:' \
+    '--permission-mode=[Permission mode to use]:mode:compadd "${claude_permission_modes[@]}"' \
+    '(-c --continue)'{-c,--continue}'[Continue the most recent conversation]' \
+    '(-r --resume)'{-r,--resume=}'[Resume a conversation by session ID or search term]:session:' \
+    '--fork-session[When resuming, fork into a new session id]' \
+    '--no-session-persistence[Disable session persistence]' \
+    '--model=[Model to use]:model:' \
+    '--agent=[Agent to use]:agent:' \
+    '*--betas=[Beta headers to include]:beta header:' \
+    '--fallback-model=[Fallback model when default is busy]:model:' \
+    '--settings=[Path to settings JSON file or inline JSON]:file:_files' \
+    '*--add-dir=[Additional directories to allow tool access]:directory:_files -/' \
+    '--ide[Automatically connect to IDE on startup if available]' \
+    '--strict-mcp-config[Only use MCP servers from explicit configs]' \
+    '--session-id=[Use a specific session ID]:uuid:' \
+    '--agents=[JSON object defining custom agents]:json:' \
+    '--setting-sources=[Comma-separated setting sources to load]:sources:compadd ${claude_setting_sources[@]}' \
+    '*--plugin-dir=[Load plugins from directories for this session]:directory:_files -/' \
+    '--disable-slash-commands[Disable all slash commands]' \
+    '(-v --version)'{-v,--version}'[Output version number]' \
+    '(-h --help)'{-h,--help}'[Display help]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      local -a claude_commands
+      claude_commands=(
+        'mcp:Configure and manage MCP servers'
+        'plugin:Manage Claude Code plugins'
+        'setup-token:Set up a long-lived authentication token'
+        'doctor:Check updater health'
+        'update:Check for updates and install if available'
+        'install:Install Claude Code native build'
+        'help:Display help for a subcommand'
+      )
+      _describe -t commands 'claude commands' claude_commands
+      ;;
+    args)
+      case $line[1] in
+        mcp) _claude_mcp ;;
+        plugin) _claude_plugin ;;
+        setup-token|doctor|update) _claude_simple ;;
+        install) _claude_install ;;
+        help) _message 'choose a subcommand to show help for' ;;
+        *) _message 'enter a prompt or choose a subcommand' ;;
+      esac
+      ;;
+  esac
+}
+
+function _claude_simple() {
+  _arguments '(-h --help)'{-h,--help}'[Display help]' && return 0
+}
+
+function _claude_install() {
+  _arguments \
+    '--force[Force installation even if already installed]' \
+    '(-h --help)'{-h,--help}'[Display help]' \
+    '1:target:(stable latest)' \
+    '*:: :_files' && return 0
+}
+
+function _claude_mcp() {
+  local curcontext="$curcontext" state line
+  local -a mcp_scopes mcp_transports
+  mcp_scopes=(local user project)
+  mcp_transports=(stdio sse http)
+
+  _arguments -C \
+    '1:subcommand:->subcmd' \
+    '*::arg:->args'
+
+  case $state in
+    subcmd)
+      local -a mcp_commands
+      mcp_commands=(
+        'serve:Start the Claude Code MCP server'
+        'add:Add an MCP server'
+        'remove:Remove an MCP server'
+        'list:List configured MCP servers'
+        'get:Get MCP server details'
+        'add-json:Add an MCP server from a JSON string'
+        'add-from-claude-desktop:Import MCP servers from Claude Desktop'
+        'reset-project-choices:Clear approved/rejected project servers'
+        'help:Display help for an MCP command'
+      )
+      _describe -t commands 'mcp commands' mcp_commands
+      ;;
+    args)
+      case $line[1] in
+        serve)
+          _arguments \
+            '(-d --debug)'{-d,--debug}'[Enable debug mode]' \
+            '--verbose[Override verbose mode setting from config]' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        add)
+          _arguments \
+            '(-s --scope)'{-s,--scope=}'[Configuration scope]:scope:compadd ${mcp_scopes[@]}' \
+            '(-t --transport)'{-t,--transport=}'[Transport type]:transport:compadd ${mcp_transports[@]}' \
+            '*-e+[Set environment variables]:env=KEY=value:' \
+            '*--env=[Set environment variables]:env=KEY=value:' \
+            '*-H+[Set WebSocket headers]:header:' \
+            '*--header=[Set WebSocket headers]:header:' \
+            '1:name:' \
+            '2:command or URL:_files' \
+            '*::arguments:_default' && return 0
+          ;;
+        remove)
+          _arguments \
+            '(-s --scope)'{-s,--scope=}'[Configuration scope]:scope:compadd ${mcp_scopes[@]}' \
+            '1:name:' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        list)
+          _arguments '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        get)
+          _arguments \
+            '1:name:' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        add-json)
+          _arguments \
+            '(-s --scope)'{-s,--scope=}'[Configuration scope]:scope:compadd ${mcp_scopes[@]}' \
+            '1:name:' \
+            '2:JSON string or path:_default' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        add-from-claude-desktop)
+          _arguments \
+            '(-s --scope)'{-s,--scope=}'[Configuration scope]:scope:compadd ${mcp_scopes[@]}' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        reset-project-choices)
+          _arguments '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        help)
+          _message 'choose an MCP subcommand to show help for'
+          ;;
+        *)
+          _message 'choose an MCP subcommand'
+          ;;
+      esac
+      ;;
+  esac
+}
+
+function _claude_plugin() {
+  local curcontext="$curcontext" state line
+  local -a plugin_scopes
+  plugin_scopes=(user project local managed)
+
+  _arguments -C \
+    '1:subcommand:->subcmd' \
+    '*::arg:->args'
+
+  case $state in
+    subcmd)
+      local -a plugin_commands
+      plugin_commands=(
+        'validate:Validate a plugin or marketplace manifest'
+        'marketplace:Manage Claude Code marketplaces'
+        'install:Install a plugin from marketplaces'
+        'i:Alias for install'
+        'uninstall:Uninstall an installed plugin'
+        'remove:Alias for uninstall'
+        'enable:Enable a disabled plugin'
+        'disable:Disable an enabled plugin'
+        'update:Update a plugin to the latest version'
+        'help:Display help for a plugin command'
+      )
+      _describe -t commands 'plugin commands' plugin_commands
+      ;;
+    args)
+      case $line[1] in
+        validate)
+          _arguments \
+            '1:path to manifest:_files' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        marketplace)
+          _claude_plugin_marketplace
+          return 0
+          ;;
+        install|i)
+          _arguments \
+            '(-s --scope)'{-s,--scope=}'[Installation scope]:scope:compadd ${plugin_scopes[@]}' \
+            '1:plugin name:' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        uninstall|remove)
+          _arguments \
+            '(-s --scope)'{-s,--scope=}'[Uninstall scope]:scope:compadd ${plugin_scopes[@]}' \
+            '1:plugin name:' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        enable|disable)
+          _arguments \
+            '(-s --scope)'{-s,--scope=}'[Installation scope]:scope:compadd ${plugin_scopes[@]}' \
+            '1:plugin name:' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        update)
+          _arguments \
+            '(-s --scope)'{-s,--scope=}'[Installation scope]:scope:compadd ${plugin_scopes[@]}' \
+            '1:plugin name:' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        help)
+          _message 'choose a plugin subcommand to show help for'
+          ;;
+        *)
+          _message 'choose a plugin subcommand'
+          ;;
+      esac
+      ;;
+  esac
+}
+
+function _claude_plugin_marketplace() {
+  local curcontext="$curcontext" state line
+
+  _arguments -C \
+    '1:subcommand:->subcmd' \
+    '*::arg:->args'
+
+  case $state in
+    subcmd)
+      local -a marketplace_commands
+      marketplace_commands=(
+        'add:Add a marketplace from URL, path, or repo'
+        'list:List configured marketplaces'
+        'remove:Remove a configured marketplace'
+        'rm:Alias for remove'
+        'update:Update marketplaces from their source'
+        'help:Display help for a marketplace command'
+      )
+      _describe -t commands 'marketplace commands' marketplace_commands
+      ;;
+    args)
+      case $line[1] in
+        add)
+          _arguments \
+            '1:source (URL/path/repo):_files' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        remove|rm)
+          _arguments \
+            '1:marketplace name:' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        update)
+          _arguments \
+            '1:marketplace name (optional):' \
+            '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        list)
+          _arguments '(-h --help)'{-h,--help}'[Display help]' && return 0
+          ;;
+        help)
+          _message 'choose a marketplace subcommand to show help for'
+          ;;
+        *)
+          _message 'choose a marketplace subcommand'
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_claude "$@"

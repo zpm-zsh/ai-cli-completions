@@ -1,0 +1,84 @@
+#compdef llm
+#autoload
+
+# Completion for Simon Willison's `llm` CLI. Hand-written from the documented
+# CLI surface; not generated, so it can lag behind upstream releases.
+
+function _llm() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a commands
+  commands=(
+    'prompt:Execute a prompt (default command)'
+    'chat:Hold an ongoing chat with a model'
+    'keys:Manage stored API keys'
+    'logs:Explore logged prompts and responses'
+    'models:Manage available models'
+    'templates:Manage stored prompt templates'
+    'aliases:Manage model aliases'
+    'fragments:Manage prompt fragments'
+    'schemas:Manage stored schemas'
+    'tools:Manage tools available to models'
+    'plugins:List installed plugins'
+    'install:Install packages into the llm environment'
+    'uninstall:Uninstall packages from the llm environment'
+    'embed:Embed text and store or return the vector'
+    'embed-multi:Store embeddings for multiple strings at once'
+    'similar:Return records similar to a given input'
+    'collections:Manage embedding collections'
+    'openai:Commands for working directly with the OpenAI API'
+    'chunk:Chunk text for embedding'
+  )
+
+  _arguments -C \
+    '--version[Show the version and exit]' \
+    '(-h --help)'{-h,--help}'[Show help and exit]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      _describe -t commands 'llm command' commands
+      ;;
+    args)
+      case $words[1] in
+        prompt|chat)
+          _arguments \
+            '(-m --model)'{-m,--model}'[Model to use]:model:' \
+            '(-s --system)'{-s,--system}'[System prompt to use]:prompt:' \
+            '*'{-o,--option}'[Model option name and value]:name:' \
+            '*'{-a,--attachment}'[Attach a file or URL]:attachment:_files' \
+            '*'{-f,--fragment}'[Fragment to add to the prompt]:fragment:' \
+            '*'{-t,--template}'[Template to use]:template:' \
+            '*'{-p,--param}'[Template parameter name and value]:name:' \
+            '*'{-T,--tool}'[Tool to make available]:tool:' \
+            '--schema[JSON schema or schema id for structured output]:schema:' \
+            '(-c --continue)'{-c,--continue}'[Continue the most recent conversation]' \
+            '--cid[Continue a conversation by id]:conversation id:' \
+            '(-n --no-log)'{-n,--no-log}'[Do not log to the database]' \
+            '--log[Log the prompt and response to the database]' \
+            '--key[API key to use]:key:' \
+            '--save[Save the prompt as a template]:template name:' \
+            '--async[Run the prompt asynchronously]' \
+            '(-u --usage)'{-u,--usage}'[Show token usage]' \
+            '(-h --help)'{-h,--help}'[Show help and exit]' \
+            '*:prompt:'
+          ;;
+        keys)      _values 'subcommand' 'list[List names of stored keys]' 'path[Show the path to the keys file]' 'get[Return a stored key]' 'set[Store a key]' ;;
+        logs)      _values 'subcommand' 'list[Show logged prompts]' 'path[Show the path to the log database]' 'status[Show the log status]' 'on[Turn logging on]' 'off[Turn logging off]' 'backup[Back up the log database]' ;;
+        models)    _values 'subcommand' 'list[List available models]' 'default[Show or set the default model]' 'options[Manage default model options]' ;;
+        templates) _values 'subcommand' 'list[List available templates]' 'show[Show a template]' 'edit[Edit a template]' 'path[Show the templates directory]' 'loaders[List template loaders]' ;;
+        aliases)   _values 'subcommand' 'list[List model aliases]' 'set[Set a model alias]' 'remove[Remove a model alias]' 'path[Show the path to the aliases file]' ;;
+        fragments) _values 'subcommand' 'list[List stored fragments]' 'set[Set a fragment alias]' 'show[Show a fragment]' 'remove[Remove a fragment alias]' 'loaders[List fragment loaders]' ;;
+        schemas)   _values 'subcommand' 'list[List stored schemas]' 'show[Show a schema]' 'dsl[Convert schema DSL to JSON schema]' ;;
+        tools)     _values 'subcommand' 'list[List available tools]' ;;
+        collections) _values 'subcommand' 'list[List collections]' 'delete[Delete a collection]' 'path[Show the path to the embeddings database]' ;;
+        openai)    _values 'subcommand' 'models[List OpenAI models]' ;;
+        *)         _default ;;
+      esac
+      ;;
+  esac
+}
+
+_llm "$@"

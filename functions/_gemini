@@ -1,0 +1,185 @@
+#compdef gemini
+#autoload
+
+# Completion for the Gemini CLI. Generated from `gemini --help` and
+# `gemini <command> --help`.
+
+function _gemini() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a gemini_commands
+  gemini_commands=(
+    'mcp:Manage MCP servers'
+    'extensions:Manage Gemini CLI extensions'
+    'extension:Manage Gemini CLI extensions'
+    'skills:Manage agent skills'
+    'skill:Manage agent skills'
+    'hooks:Manage Gemini CLI hooks'
+    'hook:Manage Gemini CLI hooks'
+    'gemma:Manage local Gemma model routing'
+  )
+
+  _arguments -C \
+    '(-d --debug)'{-d,--debug}'[Run in debug mode]' \
+    '(-m --model)'{-m,--model}'[Model]:model:' \
+    '(-p --prompt)'{-p,--prompt}'[Run in non-interactive (headless) mode with the given prompt]:prompt:' \
+    '(-i --prompt-interactive)'{-i,--prompt-interactive}'[Execute the prompt and continue in interactive mode]:prompt:' \
+    '--skip-trust[Trust the current workspace for this session]' \
+    '(-w --worktree)'{-w,--worktree}'[Start Gemini in a new git worktree]::name:' \
+    '(-s --sandbox)'{-s,--sandbox}'[Run in sandbox]' \
+    '(-y --yolo)'{-y,--yolo}'[Automatically accept all actions]' \
+    '--approval-mode[Set the approval mode]:mode:(default auto_edit yolo plan)' \
+    '*--policy[Additional policy files or directories to load]:policy:_files' \
+    '*--admin-policy[Additional admin policy files or directories to load]:policy:_files' \
+    '--acp[Start the agent in ACP mode]' \
+    '--experimental-acp[Start the agent in ACP mode (deprecated)]' \
+    '*--allowed-mcp-server-names[Allowed MCP server names]:server name:' \
+    '*--allowed-tools[Tools allowed to run without confirmation (deprecated)]:tool:' \
+    '*'{-e,--extensions}'[Extensions to use]:extension:' \
+    '(-l --list-extensions)'{-l,--list-extensions}'[List all available extensions and exit]' \
+    '(-r --resume)'{-r,--resume}'[Resume a previous session (latest or index)]:session:' \
+    '--session-file[Load a session from a JSON file]:file:_files -g "*.json"' \
+    '--session-id[Start a new session with a manually provided UUID]:uuid:' \
+    '--list-sessions[List available sessions for the current project and exit]' \
+    '--delete-session[Delete a session by index number]:index:' \
+    '*--include-directories[Additional directories to include in the workspace]:directory:_files -/' \
+    '--screen-reader[Enable screen reader mode for accessibility]' \
+    '(-o --output-format)'{-o,--output-format}'[The format of the CLI output]:format:(text json stream-json)' \
+    '--raw-output[Disable sanitization of model output]' \
+    '--accept-raw-output-risk[Suppress the security warning when using --raw-output]' \
+    '(-v --version)'{-v,--version}'[Show version number]' \
+    '(-h --help)'{-h,--help}'[Show help]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      _describe -t commands 'gemini command' gemini_commands
+      ;;
+    args)
+      case $words[1] in
+        mcp)          _gemini_mcp ;;
+        extensions|extension) _gemini_extensions ;;
+        skills|skill) _gemini_skills ;;
+        hooks|hook)   _values 'subcommand' 'migrate[Migrate hooks from Claude Code to Gemini CLI]' ;;
+        gemma)        _gemini_gemma ;;
+        *)            _default ;;
+      esac
+      ;;
+  esac
+}
+
+function _gemini_mcp() {
+  local -a subcommands
+  subcommands=(
+    'add:Add a server'
+    'remove:Remove a server'
+    'list:List all configured MCP servers'
+    'enable:Enable an MCP server'
+    'disable:Disable an MCP server'
+  )
+  _describe -t commands 'gemini mcp subcommand' subcommands
+}
+
+function _gemini_extensions() {
+  local curcontext="$curcontext" state line
+  local -a subcommands
+  subcommands=(
+    'install:Install an extension from a git repository URL or a local path'
+    'uninstall:Uninstall one or more extensions'
+    'list:List installed extensions'
+    'update:Update all extensions or a named extension'
+    'disable:Disable an extension'
+    'enable:Enable an extension'
+    'link:Link an extension from a local path'
+    'new:Create a new extension from a boilerplate example'
+    'validate:Validate an extension from a local path'
+    'config:Configure extension settings'
+  )
+
+  _arguments -C '1:subcommand:->subcommand' '*::arg:->args'
+
+  case $state in
+    subcommand)
+      _describe -t commands 'gemini extensions subcommand' subcommands
+      ;;
+    args)
+      case $words[1] in
+        install)
+          _arguments '--auto-update[Keep the extension updated automatically]' \
+                     '--pre-release[Allow pre-release versions]' \
+                     '*:source:_files -/'
+          ;;
+        update)
+          _arguments '--all[Update every installed extension]' '*:name:'
+          ;;
+        enable|disable)
+          _arguments '--scope[Scope to apply the change to]:scope:(user workspace)' '*:name:'
+          ;;
+        link|new|validate)
+          _files -/
+          ;;
+        *)
+          _default
+          ;;
+      esac
+      ;;
+  esac
+}
+
+function _gemini_skills() {
+  local curcontext="$curcontext" state line
+  local -a subcommands
+  subcommands=(
+    'list:List discovered agent skills'
+    'enable:Enable an agent skill'
+    'disable:Disable an agent skill'
+    'install:Install an agent skill from a git repository URL or a local path'
+    'link:Link an agent skill from a local path'
+    'uninstall:Uninstall an agent skill by name'
+  )
+
+  _arguments -C '1:subcommand:->subcommand' '*::arg:->args'
+
+  case $state in
+    subcommand)
+      _describe -t commands 'gemini skills subcommand' subcommands
+      ;;
+    args)
+      case $words[1] in
+        list)
+          _arguments '--all[List every discovered skill]'
+          ;;
+        install)
+          _arguments '--scope[Scope to install into]:scope:(user workspace)' \
+                     '--path[Path inside the source to install from]:path:_files -/' \
+                     '*:source:_files -/'
+          ;;
+        disable|uninstall)
+          _arguments '--scope[Scope to apply the change to]:scope:(user workspace)' '*:name:'
+          ;;
+        link)
+          _files -/
+          ;;
+        *)
+          _default
+          ;;
+      esac
+      ;;
+  esac
+}
+
+function _gemini_gemma() {
+  local -a subcommands
+  subcommands=(
+    'setup:Download and configure Gemma local model routing'
+    'start:Start the LiteRT-LM server'
+    'stop:Stop the LiteRT-LM server'
+    'status:Check Gemma local model routing status'
+    'logs:View LiteRT-LM server logs'
+  )
+  _describe -t commands 'gemini gemma subcommand' subcommands
+}
+
+_gemini "$@"

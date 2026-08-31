@@ -1,0 +1,60 @@
+#compdef crush
+#autoload
+
+# Completion for Crush (Charm). Hand-written from the documented CLI surface;
+# Crush ships a native generator, so prefer:
+#   crush completion zsh > functions/_crush
+
+function _crush() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a commands
+  commands=(
+    'run:Run a single non-interactive prompt'
+    'logs:Show the application logs'
+    'dirs:Print the directories Crush uses'
+    'schema:Print the JSON schema for the config file'
+    'update-providers:Update the local provider catalog'
+    'completion:Generate a shell completion script'
+    'help:Show help for a command'
+  )
+
+  _arguments -C \
+    '(-c --cwd)'{-c,--cwd}'[Working directory]:directory:_files -/' \
+    '(-d --debug)'{-d,--debug}'[Enable debug logging]' \
+    '(-y --yolo)'{-y,--yolo}'[Accept all permission requests automatically]' \
+    '(-p --profile)'{-p,--profile}'[Profile to use]:profile:' \
+    '(-v --version)'{-v,--version}'[Print the version and exit]' \
+    '(-h --help)'{-h,--help}'[Show help]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      _describe -t commands 'crush command' commands
+      ;;
+    args)
+      case $words[1] in
+        run)
+          _arguments '(-q --quiet)'{-q,--quiet}'[Hide the spinner]' '*:prompt:'
+          ;;
+        logs)
+          _arguments '(-f --follow)'{-f,--follow}'[Follow the log output]' \
+                     '(-t --tail)'{-t,--tail}'[Number of lines to show]:lines:'
+          ;;
+        completion)
+          _values 'shell' bash zsh fish powershell
+          ;;
+        help)
+          _describe -t commands 'crush command' commands
+          ;;
+        *)
+          _default
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_crush "$@"

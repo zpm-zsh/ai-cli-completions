@@ -1,0 +1,87 @@
+#compdef q
+#autoload
+
+# Completion for the Amazon Q Developer CLI. Hand-written from the documented
+# CLI surface; the CLI ships a native generator, so prefer:
+#   q completion zsh > functions/_q
+
+function _q() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a commands
+  commands=(
+    'chat:Start an interactive chat session'
+    'translate:Translate natural language to a shell command'
+    'login:Sign in to Amazon Q'
+    'logout:Sign out of Amazon Q'
+    'whoami:Show the signed-in identity'
+    'profile:Manage the active profile'
+    'settings:Read and write CLI settings'
+    'setup:Set up the CLI integrations'
+    'doctor:Diagnose and fix common issues'
+    'diagnostic:Print a diagnostic report'
+    'issue:Open an issue against the CLI'
+    'mcp:Manage MCP servers'
+    'agent:Manage agents'
+    'integrations:Manage shell and IDE integrations'
+    'telemetry:Enable or disable telemetry'
+    'update:Update the CLI'
+    'version:Print the version'
+    'completion:Generate a shell completion script'
+    'help:Show help'
+  )
+
+  _arguments -C \
+    '(-v --verbose)'{-v,--verbose}'[Increase logging verbosity]' \
+    '--help-all[Show help for all subcommands]' \
+    '(-h --help)'{-h,--help}'[Show help]' \
+    '(-V --version)'{-V,--version}'[Print the version]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      _describe -t commands 'q command' commands
+      ;;
+    args)
+      case $words[1] in
+        chat)
+          _arguments \
+            '--no-interactive[Print the first response and exit]' \
+            '(-a --accept-all)'{-a,--accept-all}'[Accept all tool use requests]' \
+            '--trust-all-tools[Allow all tools without confirmation]' \
+            '*--trust-tools[Trust only the listed tools]:tool:' \
+            '(-r --resume)'{-r,--resume}'[Resume the previous conversation]' \
+            '--model[Model to use]:model:' \
+            '--agent[Agent to use]:agent:' \
+            '*:input:'
+          ;;
+        mcp)
+          _values 'subcommand' 'add[Add an MCP server]' 'remove[Remove an MCP server]' \
+                                'list[List MCP servers]' 'import[Import an MCP config]' \
+                                'status[Show MCP server status]'
+          ;;
+        agent)
+          _values 'subcommand' 'list[List agents]' 'create[Create an agent]' \
+                                'edit[Edit an agent]' 'validate[Validate an agent config]' \
+                                'set-default[Set the default agent]' 'swap[Swap the active agent]'
+          ;;
+        settings)
+          _values 'subcommand' 'open[Open the settings file]' 'all[List all settings]'
+          ;;
+        completion)
+          _values 'shell' bash zsh fish
+          ;;
+        help)
+          _describe -t commands 'q command' commands
+          ;;
+        *)
+          _default
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_q "$@"

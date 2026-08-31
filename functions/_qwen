@@ -1,0 +1,63 @@
+#compdef qwen
+#autoload
+
+# Completion for Qwen Code CLI, a fork of the Gemini CLI. Hand-written from the
+# documented CLI surface; not generated, so it can lag behind upstream releases.
+
+function _qwen() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a commands
+  commands=(
+    'mcp:Manage MCP servers'
+    'extensions:Manage Qwen Code extensions'
+  )
+
+  _arguments -C \
+    '(-m --model)'{-m,--model}'[Model]:model:' \
+    '(-p --prompt)'{-p,--prompt}'[Run in non-interactive mode with the given prompt]:prompt:' \
+    '(-i --prompt-interactive)'{-i,--prompt-interactive}'[Execute the prompt and continue interactively]:prompt:' \
+    '(-s --sandbox)'{-s,--sandbox}'[Run in sandbox]' \
+    '--sandbox-image[Sandbox image URI]:image:' \
+    '(-d --debug)'{-d,--debug}'[Run in debug mode]' \
+    '(-a --all-files)'{-a,--all-files}'[Include all files in the context]' \
+    '(-y --yolo)'{-y,--yolo}'[Automatically accept all actions]' \
+    '--approval-mode[Set the approval mode]:mode:(default auto_edit yolo plan)' \
+    '--show-memory-usage[Show memory usage in the status bar]' \
+    '(-c --checkpointing)'{-c,--checkpointing}'[Enable checkpointing of file edits]' \
+    '*'{-e,--extensions}'[Extensions to use]:extension:' \
+    '(-l --list-extensions)'{-l,--list-extensions}'[List all available extensions and exit]' \
+    '*--include-directories[Additional directories to include in the workspace]:directory:_files -/' \
+    '(-o --output-format)'{-o,--output-format}'[The format of the CLI output]:format:(text json stream-json)' \
+    '--openai-logging[Enable logging of OpenAI API calls]' \
+    '--tavily-api-key[Tavily API key for web search]:key:' \
+    '--proxy[Proxy to use for requests]:proxy:' \
+    '(-v --version)'{-v,--version}'[Show version number]' \
+    '(-h --help)'{-h,--help}'[Show help]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      _describe -t commands 'qwen command' commands
+      ;;
+    args)
+      case $words[1] in
+        mcp)
+          _values 'subcommand' 'add[Add a server]' 'remove[Remove a server]' 'list[List configured MCP servers]'
+          ;;
+        extensions)
+          _values 'subcommand' 'install[Install an extension]' 'uninstall[Uninstall an extension]' \
+                                'list[List installed extensions]' 'update[Update extensions]' \
+                                'link[Link an extension from a local path]' 'new[Create a new extension]'
+          ;;
+        *)
+          _default
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_qwen "$@"

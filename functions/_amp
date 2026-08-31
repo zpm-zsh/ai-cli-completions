@@ -1,0 +1,61 @@
+#compdef amp
+#autoload
+
+# Completion for the Amp CLI (Sourcegraph). Hand-written from the documented
+# CLI surface; not generated, so it can lag behind upstream releases.
+
+function _amp() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a commands
+  commands=(
+    'login:Authenticate with Amp'
+    'logout:Sign out of Amp'
+    'threads:Manage conversation threads'
+    'tools:Inspect available tools'
+    'mcp:Manage MCP servers'
+    'doctor:Diagnose the local Amp installation'
+    'update:Update the Amp CLI'
+    'help:Show help'
+  )
+
+  _arguments -C \
+    '(-x --execute)'{-x,--execute}'[Execute a prompt non-interactively and exit]:prompt:' \
+    '--dangerously-allow-all[Allow all tool calls without confirmation]' \
+    '--jsonl[Emit newline-delimited JSON output]' \
+    '--log-level[Log level]:level:(debug info warn error)' \
+    '--log-file[Write logs to a file]:file:_files' \
+    '--settings-file[Path to the settings file]:file:_files' \
+    '(-v --version)'{-v,--version}'[Print the version and exit]' \
+    '(-h --help)'{-h,--help}'[Show help]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      _describe -t commands 'amp command' commands
+      ;;
+    args)
+      case $words[1] in
+        threads)
+          _values 'subcommand' 'list[List threads]' 'new[Start a new thread]' \
+                                'continue[Continue a thread]' 'fork[Fork a thread]' \
+                                'share[Share a thread]' 'compact[Compact a thread]'
+          ;;
+        tools)
+          _values 'subcommand' 'show[Show available tools]'
+          ;;
+        mcp)
+          _values 'subcommand' 'list[List MCP servers]' 'add[Add an MCP server]' \
+                                'remove[Remove an MCP server]'
+          ;;
+        *)
+          _default
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_amp "$@"

@@ -1,0 +1,48 @@
+#compdef mods
+#autoload
+
+# Completion for Mods (Charm). Hand-written from the documented CLI surface;
+# Mods ships a native generator, so prefer:
+#   mods completion zsh > functions/_mods
+
+function _mods() {
+  _arguments -s \
+    '(-m --model)'{-m,--model}'[Model name to use]:model:' \
+    '(-a --api)'{-a,--api}'[API endpoint to use]:api:' \
+    '--api-key[API key to use]:key:' \
+    '(-f --format)'{-f,--format}'[Ask for a formatted response]' \
+    '--format-as[Output format when using --format]:format:(markdown json)' \
+    '(-r --raw)'{-r,--raw}'[Render output as raw text]' \
+    '(-t --title)'{-t,--title}'[Set a title for the conversation]:title:' \
+    '(-l --list)'{-l,--list}'[List saved conversations]' \
+    '(-s --show)'{-s,--show}'[Show a saved conversation]:conversation:' \
+    '(-S --show-last)'{-S,--show-last}'[Show the last saved conversation]' \
+    '(-c --continue)'{-c,--continue}'[Continue from the named conversation]:conversation:' \
+    '(-C --continue-last)'{-C,--continue-last}'[Continue from the last conversation]' \
+    '(-d --delete)'{-d,--delete}'[Delete a saved conversation]:conversation:' \
+    '--delete-older-than[Delete conversations older than a duration]:duration:' \
+    '(-P --prompt)'{-P,--prompt}'[Include the prompt in the output]' \
+    '(-p --prompt-args)'{-p,--prompt-args}'[Include the prompt arguments in the output]' \
+    '(-q --quiet)'{-q,--quiet}'[Quiet mode, only output errors to stderr]' \
+    '--settings[Open the settings in your editor]' \
+    '--dirs[Print the directories mods uses]' \
+    '--reset-settings[Restore the default settings]' \
+    '--role[Role to use]:role:' \
+    '--list-roles[List the available roles]' \
+    '--fanciness[Number of cycling characters in the spinner]:fanciness:' \
+    '--status-text[Text to show while generating]:text:' \
+    '--no-cache[Disable caching of the conversation]' \
+    '--word-wrap[Wrap output at a character width]:width:' \
+    '--max-tokens[Maximum number of tokens in the response]:tokens:' \
+    '--max-input-chars[Default character limit on input length]:chars:' \
+    '--temp[Sampling temperature]:temperature:' \
+    '--topp[Topp value]:topp:' \
+    '--topk[Topk value]:topk:' \
+    '(-x --http-proxy)'{-x,--http-proxy}'[HTTP proxy to use]:proxy:' \
+    '--theme[Theme to use in the forms]:theme:' \
+    '(-h --help)'{-h,--help}'[Show help and exit]' \
+    '(-v --version)'{-v,--version}'[Show the version and exit]' \
+    '*:prompt:'
+}
+
+_mods "$@"

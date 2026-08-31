@@ -1,0 +1,73 @@
+#!/usr/bin/env zsh
+#
+# Refresh the completion files that upstream CLIs can generate themselves.
+#
+# Usage: ai-cli-completions-update [command ...]
+#
+# Without arguments every known CLI is refreshed if it is installed.
+
+emulate -L zsh
+setopt pipe_fail
+
+local plugin_dir="${0:A:h:h}"
+local functions_dir="$plugin_dir/functions"
+
+# command -> generator command line
+typeset -A generators
+generators=(
+  codex    'codex completion zsh'
+  opencode 'opencode completion zsh'
+  copilot  'copilot completion zsh'
+  crush    'crush completion zsh'
+  mods     'mods completion zsh'
+  q        'q completion zsh'
+  goose    'goose completion zsh'
+)
+
+local -a targets
+if (( $# )); then
+  targets=( "$@" )
+else
+  targets=( ${(k)generators} )
+fi
+
+local cmd tmp
+local -i failed=0
+
+for cmd in ${(o)targets}; do
+  if [[ -z ${generators[$cmd]} ]]; then
+    print -u2 "skip: $cmd has no known completion generator"
+    continue
+  fi
+
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    print "skip: $cmd is not installed"
+    continue
+  fi
+
+  tmp="$(mktemp)"
+  if ! eval "${generators[$cmd]}" >"$tmp" 2>/dev/null || [[ ! -s $tmp ]]; then
+    print -u2 "fail: '${generators[$cmd]}' produced no output"
+    rm -f "$tmp"
+    (( failed++ ))
+    continue
+  fi
+
+  if ! zsh -n "$tmp" 2>/dev/null; then
+    print -u2 "fail: output of '${generators[$cmd]}' is not valid zsh"
+    rm -f "$tmp"
+    (( failed++ ))
+    continue
+  fi
+
+  mv "$tmp" "$functions_dir/_$cmd"
+  chmod 644 "$functions_dir/_$cmd"
+  print "updated: functions/_$cmd"
+done
+
+if (( failed )); then
+  print -u2 "$failed generator(s) failed"
+  exit 1
+fi
+
+print "Restart the shell or run 'zpm clean' to pick up the changes."

@@ -1,0 +1,60 @@
+#compdef droid
+#autoload
+
+# Completion for the Factory CLI (droid). Hand-written from the documented CLI
+# surface; not generated, so it can lag behind upstream releases.
+
+function _droid() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a commands
+  commands=(
+    'exec:Run a single prompt non-interactively'
+    'mcp:Manage MCP servers'
+    'login:Authenticate with Factory'
+    'logout:Sign out of Factory'
+    'update:Update the droid CLI'
+    'help:Show help'
+  )
+
+  _arguments -C \
+    '(-m --model)'{-m,--model}'[Model to use]:model:' \
+    '(-a --auto)'{-a,--auto}'[Autonomy level]:level:(low medium high)' \
+    '(-f --file)'{-f,--file}'[Read the prompt from a file]:file:_files' \
+    '(-o --output-format)'{-o,--output-format}'[Output format]:format:(text json debug)' \
+    '--session-id[Use a specific session id]:uuid:' \
+    '--cwd[Working directory]:directory:_files -/' \
+    '(-v --version)'{-v,--version}'[Print the version and exit]' \
+    '(-h --help)'{-h,--help}'[Show help]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      _describe -t commands 'droid command' commands
+      ;;
+    args)
+      case $words[1] in
+        exec)
+          _arguments \
+            '(-m --model)'{-m,--model}'[Model to use]:model:' \
+            '(-a --auto)'{-a,--auto}'[Autonomy level]:level:(low medium high)' \
+            '(-f --file)'{-f,--file}'[Read the prompt from a file]:file:_files' \
+            '(-o --output-format)'{-o,--output-format}'[Output format]:format:(text json debug)' \
+            '--session-id[Use a specific session id]:uuid:' \
+            '*:prompt:'
+          ;;
+        mcp)
+          _values 'subcommand' 'list[List MCP servers]' 'add[Add an MCP server]' \
+                                'remove[Remove an MCP server]'
+          ;;
+        *)
+          _default
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_droid "$@"

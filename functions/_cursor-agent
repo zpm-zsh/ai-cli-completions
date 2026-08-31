@@ -1,0 +1,58 @@
+#compdef cursor-agent
+#autoload
+
+# Completion for the Cursor CLI agent. Hand-written from the documented CLI
+# surface; not generated, so it can lag behind upstream releases.
+
+function _cursor-agent() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a commands
+  commands=(
+    'login:Authenticate with Cursor'
+    'logout:Sign out of Cursor'
+    'status:Show authentication and version status'
+    'ls:List past chat sessions'
+    'resume:Resume a previous chat session'
+    'create-chat:Create a new chat session and print its id'
+    'mcp:Manage MCP servers'
+    'update:Update cursor-agent to the latest version'
+    'upgrade:Alias for update'
+    'help:Show help'
+  )
+
+  _arguments -C \
+    '(-p --print)'{-p,--print}'[Print the response non-interactively and exit]' \
+    '(-m --model)'{-m,--model}'[Model to use]:model:' \
+    '--output-format[Output format for print mode]:format:(text json stream-json)' \
+    '--resume[Resume a session by id]:session id:' \
+    '--force[Allow commands to run without confirmation]' \
+    '(-a --api-key)'{-a,--api-key}'[API key to authenticate with]:api key:' \
+    '--fullscreen[Start in fullscreen mode]' \
+    '(-v --version)'{-v,--version}'[Print the version and exit]' \
+    '(-h --help)'{-h,--help}'[Show help]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      _describe -t commands 'cursor-agent command' commands
+      ;;
+    args)
+      case $words[1] in
+        mcp)
+          _values 'subcommand' 'list[List configured MCP servers]' \
+                                'login[Authenticate with an MCP server]' \
+                                'add[Add an MCP server]' \
+                                'remove[Remove an MCP server]'
+          ;;
+        *)
+          _default
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_cursor-agent "$@"

@@ -1,0 +1,124 @@
+#compdef ollama
+#autoload
+
+# Completion for the Ollama CLI. Generated from `ollama --help` and
+# `ollama <command> --help`. Model names are completed from `ollama list`.
+
+function _ollama_models() {
+  local -a models
+  models=( ${(f)"$(command ollama list 2>/dev/null | awk 'NR>1 && NF {print $1}')"} )
+  (( $#models )) && _describe -t models 'model' models
+}
+
+function _ollama_running_models() {
+  local -a models
+  models=( ${(f)"$(command ollama ps 2>/dev/null | awk 'NR>1 && NF {print $1}')"} )
+  (( $#models )) && _describe -t models 'running model' models
+}
+
+function _ollama() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a ollama_commands
+  ollama_commands=(
+    'serve:Start ollama'
+    'start:Start ollama'
+    'create:Create a model'
+    'show:Show information for a model'
+    'run:Run a model'
+    'stop:Stop a running model'
+    'pull:Pull a model from a registry'
+    'push:Push a model to a registry'
+    'signin:Sign in to ollama.com'
+    'signout:Sign out from ollama.com'
+    'list:List models'
+    'ls:List models'
+    'ps:List running models'
+    'cp:Copy a model'
+    'rm:Remove a model'
+    'help:Help about any command'
+  )
+
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[Help for ollama]' \
+    '(-v --version)'{-v,--version}'[Show version information]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      _describe -t commands 'ollama command' ollama_commands
+      ;;
+    args)
+      case $words[1] in
+        run)
+          _arguments \
+            '--dimensions[Truncate output embeddings to specified dimension]:dimensions:' \
+            '--experimental[Enable experimental agent loop with tools]' \
+            '--experimental-websearch[Enable web search tool in experimental mode]' \
+            '--experimental-yolo[Skip all tool approval prompts]' \
+            '--format[Response format]:format:(json)' \
+            '--hidethinking[Hide thinking output]' \
+            '--insecure[Use an insecure registry]' \
+            '--keepalive[Duration to keep a model loaded]:duration:' \
+            '--nowordwrap[Do not wrap words to the next line automatically]' \
+            '--think[Enable thinking mode]:think:(true false high medium low)' \
+            '--truncate[Truncate inputs exceeding context length]' \
+            '--verbose[Show timings for response]' \
+            '(-h --help)'{-h,--help}'[Help for run]' \
+            '1:model:_ollama_models' \
+            '*:prompt:'
+          ;;
+        pull|push)
+          _arguments \
+            '--insecure[Use an insecure registry]' \
+            '(-h --help)'{-h,--help}"[Help for $words[1]]" \
+            '1:model:_ollama_models'
+          ;;
+        show)
+          _arguments \
+            '--license[Show license of a model]' \
+            '--modelfile[Show Modelfile of a model]' \
+            '--parameters[Show parameters of a model]' \
+            '--system[Show system message of a model]' \
+            '--template[Show template of a model]' \
+            '(-v --verbose)'{-v,--verbose}'[Show detailed model information]' \
+            '(-h --help)'{-h,--help}'[Help for show]' \
+            '1:model:_ollama_models'
+          ;;
+        create)
+          _arguments \
+            '(-f --file)'{-f,--file}'[Name of the Modelfile]:modelfile:_files' \
+            '(-q --quantize)'{-q,--quantize}'[Quantize model to this level]:level:(q4_0 q4_1 q4_K_M q4_K_S q5_0 q5_1 q5_K_M q5_K_S q8_0)' \
+            '(-h --help)'{-h,--help}'[Help for create]' \
+            '1:model:'
+          ;;
+        cp)
+          _arguments \
+            '(-h --help)'{-h,--help}'[Help for cp]' \
+            '1:source:_ollama_models' \
+            '2:destination:'
+          ;;
+        rm)
+          _arguments \
+            '(-h --help)'{-h,--help}'[Help for rm]' \
+            '*:model:_ollama_models'
+          ;;
+        stop)
+          _arguments \
+            '(-h --help)'{-h,--help}'[Help for stop]' \
+            '1:model:_ollama_running_models'
+          ;;
+        help)
+          _describe -t commands 'ollama command' ollama_commands
+          ;;
+        *)
+          _arguments '(-h --help)'{-h,--help}'[Show help]'
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_ollama "$@"

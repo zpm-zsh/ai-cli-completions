@@ -1,0 +1,60 @@
+#compdef aider
+#autoload
+
+# Completion for Aider (aider-chat). Hand-written from the documented CLI
+# surface; not generated, so it can lag behind upstream releases.
+
+function _aider() {
+  _arguments -s \
+    '--model[Specify the model to use]:model:' \
+    '--opus[Use claude-3-opus]' \
+    '--sonnet[Use a Claude Sonnet model]' \
+    '--haiku[Use a Claude Haiku model]' \
+    '--4o[Use gpt-4o]' \
+    '--deepseek[Use a DeepSeek model]' \
+    '--o1-mini[Use o1-mini]' \
+    '--architect[Use architect edit format]' \
+    '--edit-format[Edit format the LLM should use]:format:(whole diff diff-fenced udiff architect)' \
+    '--weak-model[Model for commit messages and chat history summarization]:model:' \
+    '--editor-model[Model used for editor tasks]:model:' \
+    '--editor-edit-format[Edit format for the editor model]:format:(whole diff diff-fenced udiff)' \
+    '--reasoning-effort[Set the reasoning effort level]:effort:(low medium high)' \
+    '(-m --message)'{-m,--message}'[Send a single message, process the reply, then exit]:message:' \
+    '--message-file[Send the contents of a file as a single message, then exit]:file:_files' \
+    '*--file[Add a file to the chat session]:file:_files' \
+    '*--read[Add a read-only file to the chat session]:file:_files' \
+    '(-c --config)'{-c,--config}'[Specify the config file]:file:_files' \
+    '--env-file[Specify the .env file to load]:file:_files' \
+    '--map-tokens[Suggested number of tokens to use for the repo map]:tokens:' \
+    '--map-refresh[Control how often the repo map is refreshed]:when:(auto always files manual)' \
+    '(--yes-always --yes)'{--yes-always,--yes}'[Always say yes to every confirmation]' \
+    '--no-auto-commits[Do not commit changes automatically]' \
+    '--auto-commits[Commit changes automatically]' \
+    '--dirty-commits[Commit dirty files before starting]' \
+    '--no-dirty-commits[Do not commit dirty files before starting]' \
+    '--commit[Commit all pending changes with a generated message, then exit]' \
+    '--commit-prompt[Custom prompt for generating commit messages]:prompt:' \
+    '--lint[Lint and fix the provided files, or dirty files if none provided]' \
+    '--lint-cmd[Lint command to run for a language]:command:' \
+    '--test[Run the test command and fix the failures]' \
+    '--test-cmd[Command used by --test]:command:' \
+    '--watch-files[Watch files for ai comments and act on them]' \
+    '--copy-paste[Copy/paste between the chat and a web UI]' \
+    '--dark-mode[Use colors suited to a dark terminal background]' \
+    '--light-mode[Use colors suited to a light terminal background]' \
+    '--pretty[Enable pretty, colorized output]' \
+    '--no-pretty[Disable pretty, colorized output]' \
+    '--no-stream[Disable streaming responses]' \
+    '--show-repo-map[Print the repo map and exit]' \
+    '--show-prompts[Print the system prompts and exit]' \
+    '--subtree-only[Only consider files in the current subtree of the git repository]' \
+    '--no-git[Do not look for a git repository]' \
+    '--gui[Run the browser UI]' \
+    '--apply[Apply the changes from the given file instead of running the chat]:file:_files' \
+    '--verbose[Enable verbose output]' \
+    '--version[Show the version number and exit]' \
+    '(-h --help)'{-h,--help}'[Show help and exit]' \
+    '*:file:_files'
+}
+
+_aider "$@"

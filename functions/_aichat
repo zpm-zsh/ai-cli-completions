@@ -1,0 +1,39 @@
+#compdef aichat
+#autoload
+
+# Completion for AIChat. Hand-written from the documented CLI surface;
+# not generated, so it can lag behind upstream releases.
+
+function _aichat() {
+  _arguments -s \
+    '(-m --model)'{-m,--model}'[Select a LLM model]:model:' \
+    '--prompt[Use a custom system prompt]:prompt:' \
+    '(-r --role)'{-r,--role}'[Select a role]:role:' \
+    '(-s --session)'{-s,--session}'[Start or join a session]::session:' \
+    '--empty-session[Ensure the session is empty]' \
+    '--save-session[Ensure the session is saved]' \
+    '(-a --agent)'{-a,--agent}'[Start a agent]:agent:' \
+    '--agent-variable[Set agent variables]:name=value:' \
+    '--rag[Start a RAG]::rag:' \
+    '--rebuild-rag[Rebuild the RAG to sync document changes]' \
+    '--macro[Execute a macro]:macro:' \
+    '--serve[Serve the LLM API and WebAPP]::address:' \
+    '(-e --execute)'{-e,--execute}'[Execute commands in natural language]' \
+    '(-c --code)'{-c,--code}'[Output code only]' \
+    '*'{-f,--file}'[Include files, directories or URLs]:file:_files' \
+    '(-S --no-stream)'{-S,--no-stream}'[Turn off stream mode]' \
+    '--dry-run[Display the message without sending it]' \
+    '--info[Display information]' \
+    '--sync-models[Sync models from the remote registry]' \
+    '--list-models[List all available chat models]' \
+    '--list-roles[List all roles]' \
+    '--list-sessions[List all sessions]' \
+    '--list-agents[List all agents]' \
+    '--list-rags[List all RAGs]' \
+    '--list-macros[List all macros]' \
+    '(-h --help)'{-h,--help}'[Print help]' \
+    '(-V --version)'{-V,--version}'[Print version]' \
+    '*:text:'
+}
+
+_aichat "$@"

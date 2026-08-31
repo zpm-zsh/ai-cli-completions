@@ -1,0 +1,39 @@
+#compdef sgpt
+#autoload
+
+# Completion for ShellGPT (`sgpt`). Hand-written from the documented CLI
+# surface; not generated, so it can lag behind upstream releases.
+
+function _sgpt() {
+  _arguments -s \
+    '--model[Large language model to use]:model:' \
+    '--temperature[Randomness of generated output]:temperature:' \
+    '--top-p[Limit the highest probable tokens (words)]:top-p:' \
+    '--md[Prettify markdown output]' \
+    '--no-md[Disable markdown output]' \
+    '(-s --shell)'{-s,--shell}'[Generate and execute a shell command]' \
+    '--interaction[Interactive mode for --shell option]' \
+    '--no-interaction[Disable interactive mode for --shell option]' \
+    '(-d --describe-shell)'{-d,--describe-shell}'[Describe a shell command]' \
+    '(-c --code)'{-c,--code}'[Generate code only]' \
+    '--functions[Allow function calls]' \
+    '--no-functions[Disable function calls]' \
+    '--editor[Open the $EDITOR to provide a prompt]' \
+    '--cache[Cache completion results]' \
+    '--no-cache[Disable completion caching]' \
+    '--version[Show the version and exit]' \
+    '--chat[Follow a conversation with a given chat id]:chat id:' \
+    '--repl[Start a REPL session with a given chat id]:chat id:' \
+    '--show-chat[Show messages from a chat id]:chat id:' \
+    '(-lc --list-chats)'{-lc,--list-chats}'[List all existing chat ids]' \
+    '--role[System role for the model]:role:' \
+    '--create-role[Create a role]:role name:' \
+    '--show-role[Show a role]:role name:' \
+    '(-lr --list-roles)'{-lr,--list-roles}'[List roles]' \
+    '--install-integration[Install shell integration (ctrl-l)]' \
+    '--install-functions[Install default functions]' \
+    '--help[Show help and exit]' \
+    '*:prompt:'
+}
+
+_sgpt "$@"

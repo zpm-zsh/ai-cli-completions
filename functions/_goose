@@ -1,0 +1,84 @@
+#compdef goose
+#autoload
+
+# Completion for Goose (Block). Hand-written from the documented CLI surface;
+# not generated, so it can lag behind upstream releases.
+
+function _goose() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a commands
+  commands=(
+    'session:Start or resume an interactive session'
+    'run:Execute commands from an instruction file or stdin'
+    'configure:Configure providers, extensions and settings'
+    'info:Show goose configuration and paths'
+    'mcp:Run an enabled MCP server'
+    'agents:List the available agent versions'
+    'project:Start a session in a tracked project'
+    'projects:List tracked projects'
+    'recipe:Validate and inspect recipe files'
+    'schedule:Manage scheduled jobs'
+    'bench:Run the benchmark suite'
+    'web:Start the web interface'
+    'update:Update the goose CLI'
+    'help:Show help'
+  )
+
+  _arguments -C \
+    '(-v --version)'{-v,--version}'[Print the version and exit]' \
+    '(-h --help)'{-h,--help}'[Show help]' \
+    '1:command:->command' \
+    '*::arg:->args'
+
+  case $state in
+    command)
+      _describe -t commands 'goose command' commands
+      ;;
+    args)
+      case $words[1] in
+        session)
+          _arguments \
+            '(-n --name)'{-n,--name}'[Name for the session]:name:' \
+            '(-r --resume)'{-r,--resume}'[Resume a previous session]' \
+            '*'{--with-extension}'[Add a stdio extension command]:command:' \
+            '*'{--with-builtin}'[Add a builtin extension by name]:extension:' \
+            '--debug[Enable debug output]' \
+            '1:subcommand:(list remove export)'
+          ;;
+        run)
+          _arguments \
+            '(-i --instructions)'{-i,--instructions}'[Path to an instruction file]:file:_files' \
+            '(-t --text)'{-t,--text}'[Instruction text to run]:text:' \
+            '(-n --name)'{-n,--name}'[Name for the session]:name:' \
+            '(-r --resume)'{-r,--resume}'[Resume a previous session]' \
+            '(-s --interactive)'{-s,--interactive}'[Continue interactively after running]' \
+            '--recipe[Recipe file to run]:file:_files' \
+            '*'{--with-extension}'[Add a stdio extension command]:command:' \
+            '*'{--with-builtin}'[Add a builtin extension by name]:extension:' \
+            '--no-session[Do not persist a session file]' \
+            '--debug[Enable debug output]'
+          ;;
+        recipe)
+          _values 'subcommand' 'validate[Validate a recipe file]' \
+                                'deeplink[Generate a shareable deeplink for a recipe]' \
+                                'list[List available recipes]'
+          ;;
+        schedule)
+          _values 'subcommand' 'add[Add a scheduled job]' 'list[List scheduled jobs]' \
+                                'remove[Remove a scheduled job]' 'sessions[List sessions of a job]' \
+                                'run-now[Run a scheduled job immediately]'
+          ;;
+        help)
+          _describe -t commands 'goose command' commands
+          ;;
+        *)
+          _default
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_goose "$@"
